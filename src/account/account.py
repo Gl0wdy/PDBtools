@@ -1,5 +1,19 @@
+from dataclasses import dataclass
+from typing import Any
+
+@dataclass(slots=True)
 class Account:
-    def __init__(self, json_data: dict):
-        self.name = json_data['name']
-        self.id = json_data['id']
-        self.cookies = json_data['cookies']
+    name: str
+    id: int
+    cookies: dict[str, Any]
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Account":
+        return cls(
+            name=data["name"],
+            id=data["id"],
+            cookies=data["cookies"],
+        )
+    
+    def __repr__(self):
+        return f'Account <{self.name}>'

@@ -1,33 +1,29 @@
 import aiohttp
 
-class PDBParser:
-    def __init__(self):
-        self._session = None
-        self._boards_parser = None
-        self._pages_parser = None
+from account import AccountManager
+from .boards import PdbBoardParser
 
-    async def posts_with_cursor(
-        self,
-        topic_id: int,
-        cursor: int,
-        limit: int = 20
-    ) -> dict:
-        async with self._session.get(
-            url='/postsWithCursor',
-            params={
-                'topic_id': topic_id,
-                'cursor': cursor,
-                'limit': limit
-            }
-        ) as response:
-            if response.ok:
-                return await response.json()
-            response.raise_for_status()
+
+class PDBParser:
+    def __init__(self, account_manager: AccountManager):
+        self.manager = account_manager
+        self._session = None
+        self.board = None
+        self.page = None
             
     async def __aenter__(self):
         self._session = aiohttp.ClientSession(
-            base_url='https://api.personality-database.com/api/v1/'
+            base_url='https://api.personality-database.com/',
+            cookies=self.manager.current_account.cookies,
+            headers={
+                "User-Agent": "Mozilla/5.0 (X11; Linux x86_64)",
+                "Accept": "application/json, text/plain, */*",
+                "Referer": "https://www.personality-database.com/",
+                "Origin": "https://www.personality-database.com",
+            }
         )
+        self.board = PdbBoardParser(self._session)
+        self.page = ...
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback):
