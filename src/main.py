@@ -4,21 +4,29 @@ from account import AccountManager
 import asyncio
 import time
 import json
+from datetime import datetime as dt
+import pandas as pd
 
 
 async def main():
+    pd.set_option('display.max_rows', None)
     manager = AccountManager()
     manager.set_current_account(0)
     
     start = time.perf_counter()
+
     async with PDBParser(manager) as parser:
-        tasks = (parser.board.posts_with_offset(327817, offset, 100) for offset in range(0, 1000, 100))
-        res = await asyncio.gather(*tasks)
-    all_posts = []
-    for i in res:
-        all_posts.extend(i['posts'])
-    with open('res.json', 'w', encoding='utf-8') as f:
-        json.dump(all_posts, f, ensure_ascii=False, indent=4)
-    print(time.perf_counter() - start)
+        res = await parser.board_posts(327817, dt(2025, 1, 1).date())
+        print(len(res))
+
+    df = pd.read_json('result.json')
+    df['username'] = df['username'].apply(lambda u: f"@[{u}]")
+    likes_by_user = df.groupby('username')['vote_count'].sum()
+
+    # Сортируем по количеству лайков (по убыванию)
+    likes_by_user = likes_by_user.sort_values(ascending=False)
+
+    # Выводим результат
+    print(likes_by_user)
 
 asyncio.run(main())
