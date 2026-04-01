@@ -78,8 +78,9 @@ class PDBParser:
                 for i in profiles_by_id 
             )
             result = await asyncio.gather(*tasks)
-            for comments in result:
-                target_profile = profiles_by_id[comments['profile_id']]
+            for raw_resp in result:
+                comments = raw_resp['comments']
+                target_profile = profiles_by_id[comments[0]['profile_id']]
                 target_profile['comments'] = comments
             total_profiles = list(profiles_by_id.values())
 
